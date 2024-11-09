@@ -20,11 +20,17 @@ func UserAuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Extract the token from the Bearer scheme
-		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
+			c.Abort()
+			return
+		}
+		tokenString := parts[1]
 
 		// Parse and validate the token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Replace with your actual secret key
+			// Make sure your JWT_SECRET environment variable matches the one used to create the token
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 
@@ -43,7 +49,7 @@ func UserAuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Set user ID in context
-		c.Set("userId", claims["userId"])
+		c.Set("userId", claims["id"])
 		c.Next()
 	}
 } 

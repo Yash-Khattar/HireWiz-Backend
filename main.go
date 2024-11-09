@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"net/http"
+	"time"
 
 	"github.com/Yash-Khattar/HireWiz-Backend/database"
 	"github.com/Yash-Khattar/HireWiz-Backend/routes"
@@ -11,6 +13,20 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/Yash-Khattar/HireWiz-Backend/handlers"
 )
+
+func keepAlive(baseURL string) {
+	client := &http.Client{}
+	for {
+		resp, err := client.Get(baseURL)
+		if err != nil {
+			log.Printf("Keep-alive request failed: %v", err)
+		} else {
+			resp.Body.Close()
+			log.Println("Keep-alive request successful")
+		}
+		time.Sleep(14 * time.Minute)
+	}
+}
 
 func main() {
 	fmt.Println("Welcome to HireWiz!! 🚀🚀🚀")
@@ -24,6 +40,8 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	go keepAlive("http://localhost:" + port)
 
 	router := gin.New()
 	router.Use(gin.Logger())

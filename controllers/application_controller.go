@@ -17,7 +17,7 @@ type ApplicationController struct {
 
 func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 	// Get user ID from context (set by auth middleware)
-	userID := c.GetUint("user_id")
+	userID := c.GetUint("userId")
 	if userID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return

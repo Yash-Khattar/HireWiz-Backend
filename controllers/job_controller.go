@@ -107,17 +107,34 @@ func (j *JobController) UpdateJob(c *gin.Context) {
 		return
 	}
 
-	// Bind update data
-	var input models.JobPost
+	// Create separate input struct for updates
+	var input struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Location    string `json:"location"`
+	}
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Update fields
-	input.UpdatedAt = time.Now()
-	if err := j.DB.Model(&job).Updates(input).Error; err != nil {
+	// Update only the specified fields
+	updates := map[string]interface{}{
+		"title":       input.Title,
+		"description": input.Description,
+		"location":    input.Location,
+		"updated_at":  time.Now(),
+	}
+
+	if err := j.DB.Model(&job).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job"})
+		return
+	}
+
+	// Fetch the updated job
+	if err := j.DB.First(&job, job.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated job"})
 		return
 	}
 
