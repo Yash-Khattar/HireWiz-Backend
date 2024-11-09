@@ -1,11 +1,17 @@
 package controllers
 
 import (
+	"context"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/Yash-Khattar/HireWiz-Backend/handlers"
+	"cloud.google.com/go/storage"
+	"google.golang.org/api/option"
+
 	"github.com/Yash-Khattar/HireWiz-Backend/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -13,6 +19,54 @@ import (
 
 type ApplicationController struct {
 	DB *gorm.DB
+}
+
+func (a *ApplicationController) uploadToGCS(file *multipart.FileHeader) (string, error) {
+	ctx := context.Background()
+	fmt.Println("Uploading to GCS")
+
+	// Set up credentials from the JSON file
+	credentialsFile := "ai-hr-441207-c32baa40bcf7.json"
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile(credentialsFile))
+	if err != nil {
+		return "", fmt.Errorf("failed to create client: %v", err)
+	}
+	fmt.Println("Client created")
+	defer client.Close()
+	fmt.Println("Client closed")
+	bucketName := "hire-wiz" // Your bucket name
+	bucket := client.Bucket(bucketName)
+	fmt.Println("Bucket created")
+	// Generate a unique filename
+	filename := fmt.Sprintf("resumes/%d-%s", time.Now().Unix(), file.Filename)
+	fmt.Println("Filename created")
+	obj := bucket.Object(filename)
+	fmt.Println("Object created")
+	writer := obj.NewWriter(ctx)
+	fmt.Println("Writer created")
+
+	// Open the uploaded file
+	src, err := file.Open()
+	fmt.Println("Source opened")
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+	fmt.Println("Source closed")
+
+	// Copy the file content to GCS
+	if _, err := io.Copy(writer, src); err != nil {
+		return "", err
+	}
+	fmt.Println("Copy completed")
+	if err := writer.Close(); err != nil {
+		return "", err
+	}
+	fmt.Println("Writer closed")
+	// Generate the public URL
+	publicURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, filename)
+	fmt.Println("Public URL generated" + publicURL)
+	return publicURL, nil
 }
 
 func (a *ApplicationController) ApplyForJob(c *gin.Context) {
@@ -59,8 +113,8 @@ func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 		return
 	}
 
-	// Upload resume to Cloudinary
-	resumeURL, err := handlers.UploadResume(file)
+	// Upload resume to GCS instead of Cloudinary
+	resumeURL, err := a.uploadToGCS(file)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload resume"})
 		return
@@ -86,7 +140,7 @@ func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Application submitted successfully",
+		"message":     "Application submitted successfully",
 		"application": application,
 	})
-} 
+}
