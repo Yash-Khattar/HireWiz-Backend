@@ -9,6 +9,7 @@ import (
 
 func JobRouter(router *gin.Engine, db *gorm.DB) {
 	jobController := controllers.JobController{DB: db}
+	applicationController := controllers.ApplicationController{DB: db}
 
 	// Public routes (no auth required)
 	router.GET("/jobs/public", jobController.GetAllJobs)
@@ -22,5 +23,12 @@ func JobRouter(router *gin.Engine, db *gorm.DB) {
 		jobs.GET("/getbyid/:id", jobController.GetJob)
 		jobs.PUT("/update/:id", jobController.UpdateJob)
 		jobs.DELETE("/delete/:id", jobController.DeleteJob)
+	}
+
+	// Application routes (require user auth)
+	applications := router.Group("/jobs")
+	applications.Use(middleware.UserAuthMiddleware())
+	{
+		applications.POST("/:id/apply", applicationController.ApplyForJob)
 	}
 }

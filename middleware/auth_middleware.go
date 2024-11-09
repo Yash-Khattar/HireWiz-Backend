@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/Yash-Khattar/HireWiz-Backend/handlers"
@@ -26,6 +27,7 @@ func CompanyAuthMiddleware() gin.HandlerFunc {
 
 		token := parts[1]
 		companyID, err := handlers.ValidateJWT(token)
+		fmt.Println(companyID)
 		if err != nil {
 			c.JSON(401, gin.H{"error": "Invalid token"})
 			c.Abort()

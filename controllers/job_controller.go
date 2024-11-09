@@ -164,8 +164,8 @@ func (j *JobController) GetAllJobs(c *gin.Context) {
 
 	// Handle search query if provided
 	if search := c.Query("search"); search != "" {
-		query = query.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?", 
-			"%"+strings.ToLower(search)+"%", 
+		query = query.Where("LOWER(title) LIKE ? OR LOWER(description) LIKE ?",
+			"%"+strings.ToLower(search)+"%",
 			"%"+strings.ToLower(search)+"%")
 	}
 
@@ -181,7 +181,7 @@ func (j *JobController) GetAllJobs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"jobs": jobs,
+		"jobs":  jobs,
 		"count": len(jobs),
 	})
 }

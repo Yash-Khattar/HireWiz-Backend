@@ -7,7 +7,7 @@ type JobPost struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	Title       string    `gorm:"not null" json:"title" binding:"required"`
 	Description string    `gorm:"type:text" json:"description" binding:"required"`
-	Location    string    `json:"location"`
+	Location    string    `json:"location" binding:"required"`
 	CompanyID   uint      `json:"company_id"`
 	Company     Company   `json:"company" gorm:"foreignKey:CompanyID"`
 	CreatedAt   time.Time `json:"createdAt"`

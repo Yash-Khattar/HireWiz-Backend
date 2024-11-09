@@ -9,6 +9,7 @@ import (
 	"github.com/Yash-Khattar/HireWiz-Backend/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/Yash-Khattar/HireWiz-Backend/handlers"
 )
 
 func main() {
@@ -36,6 +37,11 @@ func main() {
 	db := database.DBinit()
 	routes.AuthRouter(router, db)
 	routes.JobRouter(router, db)
+
+	// Initialize Cloudinary
+	if err := handlers.InitCloudinary(); err != nil {
+		log.Fatal("Failed to initialize Cloudinary:", err)
+	}
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal(err)
