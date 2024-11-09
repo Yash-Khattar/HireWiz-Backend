@@ -1,0 +1,17 @@
+APIs Required
+1. Authentication
+    a. Register
+    b. Login
+    c. register user
+    d. login user
+2. Job Post
+    a. create new Job
+    b. get all jobs
+    c. delete job
+    d. update jobs
+    e. add resumes
+    f. schedule call gmail calender
+3. interview
+    a. create session init call
+    b. conversation call recursive
+    c. get interview analysis
