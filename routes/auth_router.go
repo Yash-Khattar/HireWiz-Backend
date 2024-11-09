@@ -2,6 +2,7 @@ package routes
 
 import (
 	controller "github.com/Yash-Khattar/HireWiz-Backend/controllers"
+	"github.com/Yash-Khattar/HireWiz-Backend/middleware"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -12,4 +13,7 @@ func AuthRouter(incomingAuthRoutes *gin.Engine, db *gorm.DB) {
 	incomingAuthRoutes.POST("company/login", authController.CompanyLogin)
 	incomingAuthRoutes.POST("user/register", authController.UserRegister)
 	incomingAuthRoutes.POST("user/login", authController.UserLogin)
+
+	incomingAuthRoutes.Use(middleware.UserAuthMiddleware())
+	incomingAuthRoutes.GET("getme", authController.GetMe)
 }

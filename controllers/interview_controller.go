@@ -3,9 +3,11 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+
 	"github.com/Yash-Khattar/HireWiz-Backend/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -37,8 +39,21 @@ func (i *InterviewController) InitInterview(c *gin.Context) {
 
 	// Fetch user's resume URL from applications
 	var application models.Application
-	if err := i.DB.Where("job_post_id = ? AND user_id = ?", input.JobID, input.UserID).First(&application).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Application not found"})
+	if err := i.DB.Debug().Where("job_post_id = ? AND user_id = ?", input.JobID, input.UserID).First(&application).Error; err != nil {
+		// Log the actual error and input values
+		fmt.Printf("Failed to find application - JobID: %d, UserID: %d, Error: %v\n", input.JobID, input.UserID, err)
+
+		// Check if it's specifically a record not found error
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error":   "No application found for this job and user combination",
+				"details": fmt.Sprintf("JobID: %d, UserID: %d", input.JobID, input.UserID),
+			})
+			return
+		}
+
+		// Handle other database errors
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error while fetching application"})
 		return
 	}
 

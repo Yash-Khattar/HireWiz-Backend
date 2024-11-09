@@ -17,8 +17,20 @@ type ApplicationController struct {
 
 func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 	// Get user ID from context (set by auth middleware)
-	userID := c.GetUint("userId")
-	if userID == 0 {
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Type assert to uint
+	userIDUint, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	if userIDUint == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
@@ -35,7 +47,7 @@ func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 
 	// Check if already applied
 	var existingApplication models.Application
-	if err := a.DB.Where("job_post_id = ? AND user_id = ?", jobID, userID).First(&existingApplication).Error; err == nil {
+	if err := a.DB.Where("job_post_id = ? AND user_id = ?", jobID, userIDUint).First(&existingApplication).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Already applied for this job"})
 		return
 	}
@@ -62,7 +74,7 @@ func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 	// Create application
 	application := models.Application{
 		JobPostID: uint(int_jobID),
-		UserID:    userID,
+		UserID:    userIDUint,
 		AppliedAt: time.Now(),
 		Status:    "pending",
 		ResumeURL: resumeURL,

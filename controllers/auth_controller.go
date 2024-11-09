@@ -194,3 +194,37 @@ func (u *AuthController) UserLogin(c *gin.Context) {
 		},
 	})
 }
+
+func (u *AuthController) GetMe(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID, exists := c.Get("userId")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userIDUint, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	// Find user in database
+	var user models.User
+	if err := u.DB.First(&user, userIDUint).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// Return user data (excluding sensitive information)
+	c.JSON(http.StatusOK, gin.H{
+		"user": gin.H{
+			"id":        user.ID,
+			"email":     user.Email,
+			"name":      user.Name,
+			"createdAt": user.CreatedAt,
+			"updatedAt": user.UpdatedAt,
+		},
+	})
+}
+

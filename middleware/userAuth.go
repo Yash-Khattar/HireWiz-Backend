@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -27,7 +28,7 @@ func UserAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		tokenString := parts[1]
-
+		fmt.Println(tokenString)
 		// Parse and validate the token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			// Make sure your JWT_SECRET environment variable matches the one used to create the token
@@ -42,14 +43,22 @@ func UserAuthMiddleware() gin.HandlerFunc {
 
 		// Extract claims
 		claims, ok := token.Claims.(jwt.MapClaims)
+		fmt.Println(claims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
 			c.Abort()
 			return
 		}
-
-		// Set user ID in context
-		c.Set("userId", claims["id"])
+		fmt.Println(claims["id"])
+		// Convert the ID to float64 first (JWT numbers are float64 by default)
+		if id, ok := claims["id"].(float64); ok {
+			// Set user ID in context as uint
+			c.Set("userId", uint(id))
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
-} 
+}
