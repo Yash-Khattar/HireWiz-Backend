@@ -58,7 +58,7 @@ func (j *JobController) CreateJob(c *gin.Context) {
 
 // GetJobs returns all jobs for a company
 func (j *JobController) GetJobs(c *gin.Context) {
-	companyID := c.GetUint("companyID")
+	companyID := c.GetUint("company_id")
 	if companyID == 0 {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -75,7 +75,7 @@ func (j *JobController) GetJobs(c *gin.Context) {
 
 // GetJob returns a specific job
 func (j *JobController) GetJob(c *gin.Context) {
-	companyID := c.GetUint("companyID")
+	companyID := c.GetUint("company_id")
 	jobID := c.Param("id")
 
 	var job models.JobPost
@@ -93,7 +93,7 @@ func (j *JobController) GetJob(c *gin.Context) {
 
 // UpdateJob handles job updates
 func (j *JobController) UpdateJob(c *gin.Context) {
-	companyID := c.GetUint("companyID")
+	companyID := c.GetUint("company_id")
 	jobID := c.Param("id")
 
 	// Check if job exists and belongs to company
@@ -129,7 +129,7 @@ func (j *JobController) UpdateJob(c *gin.Context) {
 
 // DeleteJob handles job deletion
 func (j *JobController) DeleteJob(c *gin.Context) {
-	companyID := c.GetUint("companyID")
+	companyID := c.GetUint("company_id")
 	jobID := c.Param("id")
 
 	// Check if job exists and belongs to company
@@ -185,4 +185,3 @@ func (j *JobController) GetAllJobs(c *gin.Context) {
 		"count": len(jobs),
 	})
 }
-

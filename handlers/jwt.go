@@ -2,12 +2,11 @@ package handlers
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-var jwtSecret = []byte("pineapple")
 
 func GenerateJWT(companyID uint) (string , error){
 	claims:= jwt.MapClaims{
@@ -16,7 +15,7 @@ func GenerateJWT(companyID uint) (string , error){
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
 // ValidateJWT validates the JWT token and returns the company ID
@@ -27,7 +26,7 @@ func ValidateJWT(tokenString string) (uint, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return jwtSecret, nil
+		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 
 	if err != nil {

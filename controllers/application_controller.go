@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Yash-Khattar/HireWiz-Backend/handlers"
@@ -53,9 +54,14 @@ func (a *ApplicationController) ApplyForJob(c *gin.Context) {
 		return
 	}
 
+	int_jobID, err := strconv.Atoi(jobID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job ID"})
+		return
+	}
 	// Create application
 	application := models.Application{
-		JobPostID: uint(jobID),
+		JobPostID: uint(int_jobID),
 		UserID:    userID,
 		AppliedAt: time.Now(),
 		Status:    "pending",
