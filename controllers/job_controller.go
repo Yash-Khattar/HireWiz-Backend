@@ -202,3 +202,23 @@ func (j *JobController) GetAllJobs(c *gin.Context) {
 		"count": len(jobs),
 	})
 }
+
+// GetJobPublic returns a specific job for public viewing (no auth required)
+func (j *JobController) GetJobPublic(c *gin.Context) {
+	jobID := c.Param("id")
+
+	var job models.JobPost
+	// Preload company information but select only public fields
+	if err := j.DB.Preload("Company", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, name, description, website")
+	}).First(&job, jobID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch job"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"job": job})
+}

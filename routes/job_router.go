@@ -13,6 +13,7 @@ func JobRouter(router *gin.Engine, db *gorm.DB) {
 
 	// Public routes (no auth required)
 	router.GET("/jobs/public", jobController.GetAllJobs)
+	router.GET("/jobs/public/:id", jobController.GetJobPublic)
 
 	// Protected routes (require company auth)
 	jobs := router.Group("/jobs")
